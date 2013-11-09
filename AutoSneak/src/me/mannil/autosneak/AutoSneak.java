@@ -2,12 +2,7 @@ package me.mannil.autosneak;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.Logger;
-import net.h31ix.anticheat.api.AnticheatAPI;
-import net.h31ix.anticheat.manage.CheckType;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.Configuration;
@@ -15,12 +10,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kitteh.tag.TagAPI;
 
 public class AutoSneak extends JavaPlugin
 {
   static ArrayList<String> sneakingPlayers = new ArrayList<String>();
   private HashMap<String, Long> cooldownTimes = new HashMap<String, Long>();
-  private static Timer refreshTimer = null;
   public static AutoSneak Instance;
   private PluginDescriptionFile pdfFile;
   private String name;
@@ -30,7 +25,6 @@ public class AutoSneak extends JavaPlugin
   private String sneakOnMessage;
   private String sneakOffMessage;
   private String sneakCooldownMessage;
-  private int refreshInterval;
   private int sneakDuration;
   private int sneakCooldown;
   public static final Boolean debugging = Boolean.valueOf(false);
@@ -55,12 +49,10 @@ public class AutoSneak extends JavaPlugin
     this.sneakOnMessage = this.config.getString("messages.sneakOn").replace("&", "§");
     this.sneakOffMessage = this.config.getString("messages.sneakOff").replace("&", "§");
     this.sneakCooldownMessage = this.config.getString("messages.sneakCooldown").replace("&", "§");
-    this.refreshInterval = this.config.getInt("options.timers.refresh");
     this.sneakDuration = this.config.getInt("options.timers.duration", 0);
     this.sneakCooldown = this.config.getInt("options.timers.cooldown", 0);
     saveConfig();
     setupAutosneak();
-    setupRefresh();
 
     String strEnable = "[" + this.name + "] " + this.version + " enabled.";
     log.info(strEnable);
@@ -69,8 +61,7 @@ public class AutoSneak extends JavaPlugin
   public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
     if (!(sender instanceof Player)) return false;
     Player player = (Player)sender;
-
-    if (!player.hasPermission("autosneak.sneak"))
+    if (!player.hasPermission("autosneak.sneak") && !player.isOp())
       return true;
     if (args.length > 1)
       return false;
@@ -79,14 +70,10 @@ public class AutoSneak extends JavaPlugin
     } else {
       if (args[0].equalsIgnoreCase("on"))
         setSneak(player, true);
-      if (Bukkit.getServer().getPluginManager().getPlugin("AntiCheat") != null) {
-        AnticheatAPI.exemptPlayer((Player)sender, CheckType.SNEAK);
-      }
+     
       else if (args[0].equalsIgnoreCase("off"))
         setSneak(player, false);
-      if (Bukkit.getServer().getPluginManager().getPlugin("AntiCheat") != null) {
-        AnticheatAPI.unexemptPlayer((Player)sender, CheckType.SNEAK);
-      }
+      
       else
         return false;
     }
@@ -96,11 +83,7 @@ public class AutoSneak extends JavaPlugin
   private void setupAutosneak() {
     for (Player p : getServer().getOnlinePlayers())
       if (p.hasPermission("autosneak.auto")) {
-        if (Bukkit.getServer().getPluginManager().getPlugin("AntiCheat") != null) {
-          AnticheatAPI.exemptPlayer(p, CheckType.SNEAK);
-        }
-        p.setSneaking(true);
-        sneakingPlayers.add(p.getName());
+        setSneak(p, true);
       }
   }
 
@@ -108,14 +91,9 @@ public class AutoSneak extends JavaPlugin
   {
     if (sneakingPlayers.contains(player.getName())) {
       setSneak(player, false);
-      if (Bukkit.getServer().getPluginManager().getPlugin("AntiCheat") != null)
-        AnticheatAPI.unexemptPlayer(player, CheckType.SNEAK);
     }
     else
     {
-      if (Bukkit.getServer().getPluginManager().getPlugin("AntiCheat") != null) {
-        AnticheatAPI.exemptPlayer(player, CheckType.SNEAK);
-      }
       setSneak(player, true);
     }
   }
@@ -134,40 +112,19 @@ public class AutoSneak extends JavaPlugin
           getServer().getScheduler().scheduleSyncDelayedTask(this, new SneakCooldown(player), this.sneakDuration * 20L);
         }
       }
-      if (Bukkit.getServer().getPluginManager().getPlugin("AntiCheat") != null) {
-        AnticheatAPI.exemptPlayer(player, CheckType.SNEAK);
-      }
-      player.setSneaking(true);
-      player.sendMessage(this.sneakOnMessage);
 
-      if (!sneakingPlayers.contains(player.getName()))
+      if (!sneakingPlayers.contains(player.getName())){
         sneakingPlayers.add(player.getName());
+      }
+      TagAPI.refreshPlayer(player);
+      player.sendMessage(this.sneakOnMessage);
     }
     else {
-      player.setSneaking(false);
-      if (Bukkit.getServer().getPluginManager().getPlugin("AntiCheat") != null) {
-        AnticheatAPI.unexemptPlayer(player, CheckType.SNEAK);
-      }
       player.sendMessage(this.sneakOffMessage);
-      if (sneakingPlayers.contains(player.getName()))
+      if (sneakingPlayers.contains(player.getName())){
         sneakingPlayers.remove(player.getName());
-    }
-  }
-
-  private void setupRefresh()
-  {
-    if (this.refreshInterval != 0) {
-      refreshTimer = new Timer();
-      refreshTimer.scheduleAtFixedRate(new TimerTask() {
-        public void run() {
-          if (!AutoSneak.sneakingPlayers.isEmpty())
-            for (String p : AutoSneak.sneakingPlayers) {
-              Bukkit.getServer().getPlayerExact(p).setSneaking(false);
-              Bukkit.getServer().getPlayerExact(p).setSneaking(true);
-            }
-        }
       }
-      , 500L, this.refreshInterval * 1000L);
+      TagAPI.refreshPlayer(player);
     }
   }
 
