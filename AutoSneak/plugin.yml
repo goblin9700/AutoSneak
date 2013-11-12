@@ -1,6 +1,6 @@
 name: AutoSneak
 main: me.mannil.autosneak.AutoSneak
-version: 1.8
+version: 1.8.1
 depend: [TagAPI]
 website: http://evo-coding.de/
 author: SquallSeeD31, manniL
@@ -14,4 +14,6 @@ permissions:
   autosneak.auto:
     default: false
   autosneak.exempt:
+    default: op
+  autosneak.give:
     default: op

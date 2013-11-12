@@ -3,6 +3,8 @@ package me.mannil.autosneak;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
+
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.Configuration;
@@ -25,6 +27,7 @@ public class AutoSneak extends JavaPlugin
   private String sneakOnMessage;
   private String sneakOffMessage;
   private String sneakCooldownMessage;
+  private String sneakGiveMessage;
   private int sneakDuration;
   private int sneakCooldown;
   public static final Boolean debugging = Boolean.valueOf(false);
@@ -41,6 +44,7 @@ public class AutoSneak extends JavaPlugin
 
     this.config.addDefault("messages.sneakOn", "&7You are now sneaking.".replace("&", "§"));
     this.config.addDefault("messages.sneakOff", "&7You are no longer sneaking.".replace("&", "§"));
+    this.config.addDefault("messages.sneakGive", "&7Player <player> is now sneaking.".replace("&", "§"));
     this.config.addDefault("messages.sneakCooldown", "&4You must wait <time> seconds before you may sneak again.".replace("&", "§"));
     this.config.addDefault("options.timers.duration", Integer.valueOf(0));
     this.config.addDefault("options.timers.cooldown", Integer.valueOf(0));
@@ -49,6 +53,7 @@ public class AutoSneak extends JavaPlugin
     this.sneakOnMessage = this.config.getString("messages.sneakOn").replace("&", "§");
     this.sneakOffMessage = this.config.getString("messages.sneakOff").replace("&", "§");
     this.sneakCooldownMessage = this.config.getString("messages.sneakCooldown").replace("&", "§");
+    this.sneakGiveMessage = this.config.getString("messages.sneakGive").replace("&", "§");
     this.sneakDuration = this.config.getInt("options.timers.duration", 0);
     this.sneakCooldown = this.config.getInt("options.timers.cooldown", 0);
     saveConfig();
@@ -63,11 +68,18 @@ public class AutoSneak extends JavaPlugin
     Player player = (Player)sender;
     if (!player.hasPermission("autosneak.sneak") && !player.isOp())
       return true;
-    if (args.length > 1)
-      return false;
-    if (args.length == 0) {
+    if (args.length == 2 && args[0].equals("give")){
+    	if(Bukkit.getPlayer(args[1]).equals(null)){
+    		sender.sendMessage("Player not online");
+    		return true;
+    	}
+    	Player p = Bukkit.getPlayer(args[1]);
+    	toggleSneak(p);
+    	sender.sendMessage(this.sneakGiveMessage);
+    }
+    else if (args.length == 0) {
       toggleSneak(player);
-    } else {
+    } else if (args.length == 1){
       if (args[0].equalsIgnoreCase("on"))
         setSneak(player, true);
      
@@ -76,6 +88,8 @@ public class AutoSneak extends JavaPlugin
       
       else
         return false;
+    } else {
+    	return false;
     }
     return true;
   }
