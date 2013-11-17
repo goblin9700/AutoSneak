@@ -12,7 +12,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.kitteh.tag.TagAPI;
 
 public class AutoSneak extends JavaPlugin
 {
@@ -75,7 +74,7 @@ public class AutoSneak extends JavaPlugin
     	}
     	Player p = Bukkit.getPlayer(args[1]);
     	toggleSneak(p);
-    	sender.sendMessage(this.sneakGiveMessage);
+    	sender.sendMessage(this.sneakGiveMessage.replaceAll("<player>", p.getName()));
     }
     else if (args.length == 0) {
       toggleSneak(player);
@@ -112,7 +111,7 @@ public class AutoSneak extends JavaPlugin
     }
   }
 
-  private void setSneak(Player player, boolean sneak) {
+  public void setSneak(Player player, boolean sneak) {
     if (sneak) {
       if ((this.sneakCooldown > 0) && (this.cooldownTimes.containsKey(player.getName())) && (((Long)this.cooldownTimes.get(player.getName())).longValue() > System.currentTimeMillis())) {
         player.sendMessage(this.sneakCooldownMessage.replaceAll("<time>", Integer.toString((int)Math.ceil((((Long)this.cooldownTimes.get(player.getName())).longValue() - System.currentTimeMillis()) / 1000L))));
@@ -130,7 +129,7 @@ public class AutoSneak extends JavaPlugin
       if (!sneakingPlayers.contains(player.getName())){
         sneakingPlayers.add(player.getName());
       }
-      TagAPI.refreshPlayer(player);
+      player.setSneaking(true);
       player.sendMessage(this.sneakOnMessage);
     }
     else {
@@ -138,7 +137,7 @@ public class AutoSneak extends JavaPlugin
       if (sneakingPlayers.contains(player.getName())){
         sneakingPlayers.remove(player.getName());
       }
-      TagAPI.refreshPlayer(player);
+      player.setSneaking(false);
     }
   }
 
@@ -153,6 +152,7 @@ public class AutoSneak extends JavaPlugin
     String strDisable = "[" + this.name + "] " + this.version + " disabled.";
     log.info(strDisable);
   }
+
   public class SneakCooldown implements Runnable {
     private Player player;
 

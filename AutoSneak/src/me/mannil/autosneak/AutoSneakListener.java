@@ -7,8 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.kitteh.tag.PlayerReceiveNameTagEvent;
-import org.kitteh.tag.TagAPI;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 public class AutoSneakListener
   implements Listener
@@ -23,8 +22,7 @@ private final AutoSneak plugin;
   @EventHandler
   public void onPlayerJoin(PlayerJoinEvent event) { 
 	  if (event.getPlayer().hasPermission("autosneak.auto")) {
-	      AutoSneak.sneakingPlayers.add(event.getPlayer().getName());
-	      TagAPI.refreshPlayer(event.getPlayer());
+	      plugin.setSneak(event.getPlayer(), true);
 	  }
     } 
 
@@ -38,18 +36,23 @@ private final AutoSneak plugin;
   @EventHandler
   public void onPlayerRespawn(PlayerRespawnEvent event) {
     if ((!AutoSneak.sneakingPlayers.isEmpty()) && (AutoSneak.sneakingPlayers.contains(event.getPlayer().getName()))) {
-      AutoSneak.sneakingPlayers.remove(event.getPlayer().getName());
-      TagAPI.refreshPlayer(event.getPlayer());
+    	plugin.setSneak(event.getPlayer(), false);
     }
   }
   @EventHandler
-  public void onTagChange(PlayerReceiveNameTagEvent event) {
-    Player player = event.getNamedPlayer();
-    if ((this.plugin.getConfig().getBoolean("opdefault")) && (player.isOp()))
-      event.setTag("§§§§");
-    else if (AutoSneak.sneakingPlayers.contains(player.getName()))
-      event.setTag("§§§§");
-    else
-      event.setTag(player.getDisplayName());
+  public void onPlayerToggleSneak(PlayerToggleSneakEvent e){
+	  if(!AutoSneak.sneakingPlayers.isEmpty()){
+		  if(AutoSneak.debugging.booleanValue()){
+			  AutoSneak.debug("sneakingPlayers Count: " + AutoSneak.sneakingPlayers.size());
+		  }
+		  if(AutoSneak.sneakingPlayers.contains(e.getPlayer().getName())){
+			  if(AutoSneak.debugging.booleanValue()){
+				  AutoSneak.debug("sneakingPlayers contains name: " + e.getPlayer().getName());
+			  }
+			  e.getPlayer().setSneaking(true);
+			  e.setCancelled(true);
+		  }
+	  }
   }
+
 }
