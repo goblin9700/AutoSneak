@@ -1,7 +1,6 @@
 package me.mannil.autosneak;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -9,9 +8,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 
-public class AutoSneakListener
-  implements Listener
-{
+public class AutoSneakListener implements Listener{
 private final AutoSneak plugin;
 
   public AutoSneakListener(AutoSneak plugin)
@@ -28,25 +25,25 @@ private final AutoSneak plugin;
 
   @EventHandler
   public void onPlayerQuit(PlayerQuitEvent event) {
-    if (AutoSneak.sneakingPlayers.contains(event.getPlayer().getName())) {
-      AutoSneak.sneakingPlayers.remove(event.getPlayer().getName());
+    if (AutoSneak.sneakingPlayers.contains(event.getPlayer().getUniqueId())) {
+      AutoSneak.sneakingPlayers.remove(event.getPlayer().getUniqueId());
     }
   }
 
   @EventHandler
   public void onPlayerRespawn(PlayerRespawnEvent event) {
-    if ((!AutoSneak.sneakingPlayers.isEmpty()) && (AutoSneak.sneakingPlayers.contains(event.getPlayer().getName()))) {
+    if ((!AutoSneak.sneakingPlayers.isEmpty()) && (AutoSneak.sneakingPlayers.contains(event.getPlayer().getUniqueId()))) {
     	plugin.setSneak(event.getPlayer(), false);
     }
   }
   @EventHandler
   public void onPlayerToggleSneak(PlayerToggleSneakEvent e){
 	  if(!AutoSneak.sneakingPlayers.isEmpty()){
-		  if(AutoSneak.debugging.booleanValue()){
+		  if(AutoSneak.debugging){
 			  AutoSneak.debug("sneakingPlayers Count: " + AutoSneak.sneakingPlayers.size());
 		  }
-		  if(AutoSneak.sneakingPlayers.contains(e.getPlayer().getName())){
-			  if(AutoSneak.debugging.booleanValue()){
+		  if(AutoSneak.sneakingPlayers.contains(e.getPlayer().getUniqueId())){
+			  if(AutoSneak.debugging){
 				  AutoSneak.debug("sneakingPlayers contains name: " + e.getPlayer().getName());
 			  }
 			  e.getPlayer().setSneaking(true);
