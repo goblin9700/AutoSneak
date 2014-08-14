@@ -18,7 +18,6 @@ public class AutoSneak extends JavaPlugin
 {
   static ArrayList<UUID> sneakingPlayers = new ArrayList<UUID>();
   private HashMap<UUID, Long> cooldownTimes = new HashMap<UUID, Long>();
-  public static AutoSneak Instance;
   PluginDescriptionFile pdfFile;
   private String name;
   private String version;
@@ -31,16 +30,18 @@ public class AutoSneak extends JavaPlugin
   private int sneakDuration;
   private int sneakCooldown;
   public static final Boolean debugging = false;
+  public AutoSneakListener sneakListener;
 
   public void onEnable()
   {
+      sneakListener = new AutoSneakListener();
+
     this.config = getConfig();
     this.pdfFile = getDescription();
     this.name = this.pdfFile.getName();
     this.version = this.pdfFile.getVersion();
 
-    @SuppressWarnings("unused")
-	Listener listener = new AutoSneakListener(this);
+      getServer().getPluginManager().registerEvents(sneakListener, this);
 
     this.config.addDefault("messages.sneakOn", "&7You are now sneaking.".replace("&", "§"));
     this.config.addDefault("messages.sneakOff", "&7You are no longer sneaking.".replace("&", "§"));
