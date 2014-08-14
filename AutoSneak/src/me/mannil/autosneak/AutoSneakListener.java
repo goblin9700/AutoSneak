@@ -19,7 +19,7 @@ private final AutoSneak plugin;
   @EventHandler
   public void onPlayerJoin(PlayerJoinEvent event) { 
 	  if (event.getPlayer().hasPermission("autosneak.auto")) {
-	      plugin.setSneak(event.getPlayer(), true);
+	      plugin.setSneak(event.getPlayer().getUniqueId(), true);
 	  }
     } 
 
@@ -33,7 +33,7 @@ private final AutoSneak plugin;
   @EventHandler
   public void onPlayerRespawn(PlayerRespawnEvent event) {
     if ((!AutoSneak.sneakingPlayers.isEmpty()) && (AutoSneak.sneakingPlayers.contains(event.getPlayer().getUniqueId()))) {
-    	plugin.setSneak(event.getPlayer(), false);
+    	plugin.setSneak(event.getPlayer().getUniqueId(), false);
     }
   }
   @EventHandler

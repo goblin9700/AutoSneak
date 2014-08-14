@@ -19,11 +19,11 @@ public class AutoSneak extends JavaPlugin
   static ArrayList<UUID> sneakingPlayers = new ArrayList<UUID>();
   private HashMap<UUID, Long> cooldownTimes = new HashMap<UUID, Long>();
   public static AutoSneak Instance;
-  private PluginDescriptionFile pdfFile;
+  PluginDescriptionFile pdfFile;
   private String name;
   private String version;
   private static final Logger log = Logger.getLogger("Minecraft");
-  private Configuration config;
+  Configuration config;
   private String sneakOnMessage;
   private String sneakOffMessage;
   private String sneakCooldownMessage;
@@ -74,17 +74,17 @@ public class AutoSneak extends JavaPlugin
     		return true;
     	}
     	Player p = Bukkit.getPlayer(args[1]);
-    	toggleSneak(p);
+    	toggleSneak(p.getUniqueId());
     	sender.sendMessage(this.sneakGiveMessage.replaceAll("<player>", p.getName()));
     }
     else if (args.length == 0) {
-      toggleSneak(player);
+      toggleSneak(player.getUniqueId());
     } else if (args.length == 1){
       if (args[0].equalsIgnoreCase("on"))
-        setSneak(player, true);
+        setSneak(player.getUniqueId(), true);
      
       else if (args[0].equalsIgnoreCase("off"))
-        setSneak(player, false);
+        setSneak(player.getUniqueId(), false);
       
       else
         return false;
@@ -97,49 +97,51 @@ public class AutoSneak extends JavaPlugin
   private void setupAutosneak() {
     for (Player p : getServer().getOnlinePlayers())
       if (p.hasPermission("autosneak.auto")) {
-        setSneak(p, true);
+        setSneak(p.getUniqueId(), true);
       }
   }
 
-  private void toggleSneak(Player player)
+  private void toggleSneak(UUID uuid)
   {
-    if (sneakingPlayers.contains(player.getUniqueId())) {
-      setSneak(player, false);
+    if (sneakingPlayers.contains(uuid)) {
+      setSneak(uuid, false);
     }
     else
     {
-      setSneak(player, true);
+      setSneak(uuid, true);
     }
   }
 
-  public void setSneak(Player player, boolean sneak) {
-    if (sneak) {
-      if ((this.sneakCooldown > 0) && (this.cooldownTimes.containsKey(player.getUniqueId())) && (this.cooldownTimes.get(player.getUniqueId()) > System.currentTimeMillis())) {
-        player.sendMessage(this.sneakCooldownMessage.replaceAll("<time>", Integer.toString((int)Math.ceil((this.cooldownTimes.get(player.getUniqueId()) - System.currentTimeMillis()) / 1000L))));
-        return;
-      }
-      if (!player.hasPermission("autosneak.exempt")) {
-        if (this.sneakCooldown > 0) {
-          this.cooldownTimes.put(player.getUniqueId(), System.currentTimeMillis() + this.sneakCooldown * 1000L);
-        }
-        if (this.sneakDuration > 0) {
-          getServer().getScheduler().scheduleSyncDelayedTask(this, new SneakCooldown(player), this.sneakDuration * 20L);
-        }
-      }
+  public void setSneak(UUID uuid, boolean sneak) {
+      if(Bukkit.getPlayer(uuid) != null) {
+          Player player = Bukkit.getPlayer(uuid);
+          if (sneak) {
+              if ((this.sneakCooldown > 0) && (this.cooldownTimes.containsKey(uuid)) && (this.cooldownTimes.get(uuid) > System.currentTimeMillis())) {
+                  player.sendMessage(this.sneakCooldownMessage.replaceAll("<time>", Integer.toString((int) Math.ceil((this.cooldownTimes.get(uuid) - System.currentTimeMillis()) / 1000L))));
+                  return;
+              }
+              if (!player.hasPermission("autosneak.exempt")) {
+                  if (this.sneakCooldown > 0) {
+                      this.cooldownTimes.put(uuid, System.currentTimeMillis() + this.sneakCooldown * 1000L);
+                  }
+                  if (this.sneakDuration > 0) {
+                      getServer().getScheduler().scheduleSyncDelayedTask(this, new SneakCooldown(player.getUniqueId()), this.sneakDuration * 20L);
+                  }
+              }
 
-      if (!sneakingPlayers.contains(player.getUniqueId())){
-        sneakingPlayers.add(player.getUniqueId());
+              if (!sneakingPlayers.contains(uuid)) {
+                  sneakingPlayers.add(uuid);
+              }
+              player.setSneaking(true);
+              player.sendMessage(this.sneakOnMessage);
+          } else {
+              player.sendMessage(this.sneakOffMessage);
+              if (sneakingPlayers.contains(uuid)) {
+                  sneakingPlayers.remove(uuid);
+              }
+              player.setSneaking(false);
+          }
       }
-      player.setSneaking(true);
-      player.sendMessage(this.sneakOnMessage);
-    }
-    else {
-      player.sendMessage(this.sneakOffMessage);
-      if (sneakingPlayers.contains(player.getUniqueId())){
-        sneakingPlayers.remove(player.getUniqueId());
-      }
-      player.setSneaking(false);
-    }
   }
 
   public static void debug(String message)
@@ -155,13 +157,13 @@ public class AutoSneak extends JavaPlugin
   }
 
   public class SneakCooldown implements Runnable {
-    private Player player;
+    private UUID uuid;
 
-    public SneakCooldown(Player player){ this.player = player; }
+    public SneakCooldown(UUID uuid){ this.uuid = uuid; }
 
     public void run(){
-      if (this.player.isSneaking())
-        AutoSneak.this.setSneak(this.player, false);
+      if (Bukkit.getPlayer(this.uuid).isSneaking())
+        AutoSneak.this.setSneak(this.uuid, false);
     }
   }
 }
