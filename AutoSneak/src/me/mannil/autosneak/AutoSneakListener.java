@@ -8,12 +8,11 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 public class AutoSneakListener implements Listener{
-public final AutoSneak plugin = new AutoSneak();
 
   @EventHandler
   public void onPlayerJoin(PlayerJoinEvent event) { 
 	  if (event.getPlayer().hasPermission("autosneak.auto")) {
-	      plugin.setSneak(event.getPlayer().getUniqueId(), true);
+	      AutoSneak.plugin.setSneak(event.getPlayer().getUniqueId(), true);
 	  }
     } 
 
@@ -27,7 +26,7 @@ public final AutoSneak plugin = new AutoSneak();
   @EventHandler
   public void onPlayerRespawn(PlayerRespawnEvent event) {
     if ((!AutoSneak.sneakingPlayers.isEmpty()) && (AutoSneak.sneakingPlayers.contains(event.getPlayer().getUniqueId()))) {
-    	plugin.setSneak(event.getPlayer().getUniqueId(), false);
+    	AutoSneak.plugin.setSneak(event.getPlayer().getUniqueId(), false);
     }
   }
   @EventHandler

@@ -31,10 +31,12 @@ public class AutoSneak extends JavaPlugin
   private int sneakCooldown;
   public static final Boolean debugging = false;
   public AutoSneakListener sneakListener;
+  public static AutoSneak plugin;
 
   public void onEnable()
   {
       sneakListener = new AutoSneakListener();
+      plugin = this;
 
     this.config = getConfig();
     this.pdfFile = getDescription();
