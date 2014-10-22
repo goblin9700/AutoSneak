@@ -1,6 +1,5 @@
 package me.mannil.autosneak;
 
-import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -9,17 +8,11 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 public class AutoSneakListener implements Listener{
-private final AutoSneak plugin;
 
-  public AutoSneakListener(AutoSneak plugin)
-  {
-    this.plugin = AutoSneak.Instance;
-    Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
-  }
   @EventHandler
   public void onPlayerJoin(PlayerJoinEvent event) { 
 	  if (event.getPlayer().hasPermission("autosneak.auto")) {
-	      plugin.setSneak(event.getPlayer(), true);
+	      AutoSneak.plugin.setSneak(event.getPlayer().getUniqueId(), true);
 	  }
     } 
 
@@ -33,7 +26,7 @@ private final AutoSneak plugin;
   @EventHandler
   public void onPlayerRespawn(PlayerRespawnEvent event) {
     if ((!AutoSneak.sneakingPlayers.isEmpty()) && (AutoSneak.sneakingPlayers.contains(event.getPlayer().getUniqueId()))) {
-    	plugin.setSneak(event.getPlayer(), false);
+    	AutoSneak.plugin.setSneak(event.getPlayer().getUniqueId(), false);
     }
   }
   @EventHandler
